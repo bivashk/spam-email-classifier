@@ -19,15 +19,17 @@ This project helped me learn:
 ---
 
 ## 🧱 Project Structure  
+
 spam-email-classifier/
-├── app.py # Streamlit web app (UI)
-├── requirements.txt # Dependencies
-├── README.md # Project documentation
-├── data/ # Dataset (auto-downloaded in training)
-├── models/ # Saved trained models + metrics
+├── app.py                 # Streamlit web app (UI)
+├── requirements.txt       # Dependencies
+├── README.md              # Project documentation
+├── data/                  # Dataset (auto-downloaded in training)
+├── models/                # Saved trained models + metrics
 └── src/
-├── preprocessing.py # Text cleaning & TF-IDF vectorization
-└── train.py # Training pipeline (fit, evaluate, save)
+    ├── preprocessing.py   # Text cleaning & TF-IDF vectorization
+    └── train.py           # Training pipeline (fit, evaluate, save)
+
 
 ---
 
@@ -48,29 +50,30 @@ spam-email-classifier/
 
 ## 🖥️ How to Run Locally  
 
-# 1. Clone repository
+ 1. Clone repository
 git clone https://github.com/bivashk/spam-email-classifier.git
 cd spam-email-classifier
 
-# 2. Create virtual environment
+ 2. Create virtual environment
 python3 -m venv .venv
 source .venv/bin/activate   # On Windows: .venv\Scripts\activate
 
-# 3. Install requirements
+ 3. Install requirements
 pip install -r requirements.txt
 
-# 4. Train model
+ 4. Train model
 python src/train.py
 
-# 5. Run app
+ 5. Run app
 streamlit run app.py
 
-🌐 Deployment
+## 🌐 Deployment
 
 Deployed on Streamlit Cloud for easy access.
-👉 Live Demo
 
-🛠️ Tech Stack
+## 👉 Live Demo (https://spam-email-classifier-bivashk.streamlit.app/)
+
+## 🛠️ Tech Stack
 
 Python 3.10+
 
@@ -82,10 +85,10 @@ Streamlit (deployment & UI)
 
 joblib (model persistence)
 
-📌 Dataset
+## 📌 Dataset
 
 Source: SMS Spam Collection Dataset (UCI)
 
-👨‍💻 Author
+## 👨‍💻 Author
 
 Built by Bivash Koirala
