@@ -2,6 +2,23 @@ import os
 import joblib
 import streamlit as st
 
+# Load model and vectorizer
+model = joblib.load("models/spam_classifier.pkl")
+vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
+
+# --- UI ---
+st.set_page_config(page_title="Spam Email Classifier", page_icon="📧", layout="centered")
+
+st.title("📧 Spam Email Classifier")
+st.markdown(
+    """
+    This simple web app uses **Machine Learning (Naive Bayes)**  
+    to classify emails as **Spam** or **Not Spam**.  
+
+    🔹 Built with [Scikit-Learn](https://scikit-learn.org/)  
+    🔹 Deployed using [Streamlit](https://streamlit.io/)  
+    """
+)
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
 MODEL_PATH = os.path.join(MODELS_DIR, "spam_model.joblib")
 
