@@ -20,15 +20,16 @@ This project helped me learn:
 
 ## 🧱 Project Structure  
 
+```text
 spam-email-classifier/
-├── app.py # Streamlit web app (UI)
-├── requirements.txt # Dependencies
-├── README.md # Project documentation
-├── data/ # Dataset (auto-downloaded in training)
-├── models/ # Saved trained models + metrics
+├── app.py                 # Streamlit web app (UI)
+├── requirements.txt       # Dependencies
+├── README.md              # Project documentation
+├── data/                  # Dataset (auto-downloaded in training)
+├── models/                # Saved trained models + metrics
 └── src/
-├── preprocessing.py # Text cleaning & TF-IDF vectorization
-└── train.py # Training pipeline (fit, evaluate, save)
+    ├── preprocessing.py   # Text cleaning & TF-IDF vectorization
+    └── train.py           # Training pipeline (fit, evaluate, save)
 
 ---
 
