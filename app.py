@@ -54,9 +54,17 @@ notspam_examples = [
     "Your Amazon order has been shipped and will arrive tomorrow."
 ]
 
+options = ["Spam 1", "Spam 2", "Spam 3", "Spam 4", 
+           "Not Spam 1", "Not Spam 2", "Not Spam 3", "Not Spam 4", "Random Example"]
+
+# Keep dropdown state in session
+if "example_choice" not in st.session_state:
+    st.session_state["example_choice"] = "Spam 1"
+
 example_choice = st.sidebar.selectbox(
     "Choose an example",
-    ["Spam 1", "Spam 2", "Spam 3", "Spam 4", "Not Spam 1", "Not Spam 2", "Not Spam 3", "Not Spam 4", "Random Example"]
+    options,
+    index=options.index(st.session_state["example_choice"])
 )
 
 import random
@@ -64,19 +72,24 @@ if example_choice.startswith("Spam"):
     idx = int(example_choice.split()[-1]) - 1
     st.session_state["text"] = spam_examples[idx]
     st.sidebar.markdown("👉 True label: **Spam**")
+    st.session_state["example_choice"] = example_choice
 elif example_choice.startswith("Not Spam"):
     idx = int(example_choice.split()[-1]) - 1
     st.session_state["text"] = notspam_examples[idx]
     st.sidebar.markdown("👉 True label: **Not Spam**")
+    st.session_state["example_choice"] = example_choice
 elif example_choice == "Random Example":
     if random.random() < 0.5:
-        text = random.choice(spam_examples)
-        st.session_state["text"] = text
+        idx = random.randint(0, len(spam_examples) - 1)
+        st.session_state["text"] = spam_examples[idx]
         st.sidebar.markdown("👉 True label: **Spam**")
+        st.session_state["example_choice"] = f"Spam {idx+1}"
     else:
-        text = random.choice(notspam_examples)
-        st.session_state["text"] = text
+        idx = random.randint(0, len(notspam_examples) - 1)
+        st.session_state["text"] = notspam_examples[idx]
         st.sidebar.markdown("👉 True label: **Not Spam**")
+        st.session_state["example_choice"] = f"Not Spam {idx+1}"
+
 
 # Random example button
 if st.sidebar.button("🎲 Load random example"):
