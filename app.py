@@ -31,19 +31,19 @@ model = load_model()
 with st.expander("How it works (short)"):
     st.write(
         "- Text is transformed into TF-IDF features.\n"
-        "- A classifier (Naive Bayes or Logistic Regression — whichever scored better in training) predicts **spam** vs **ham**.\n"
+        "- A classifier (Naive Bayes or Logistic Regression — whichever scored better in training) predicts **Spam** vs **Not Spam**.\n"
         "- You can view training metrics below."
     )
 
 # ----- Sidebar samples -----
 st.sidebar.header("📌 Try sample messages")
 sample_spam = "Congratulations! You've won a prize. Click here to claim your reward now."
-sample_ham = "Hi, can we reschedule our meeting to tomorrow at 4 PM?"
+sample_notspam = "Hi, can we reschedule our meeting to tomorrow at 4 PM?"
 
 if st.sidebar.button("Load spam example"):
     st.session_state["text"] = sample_spam
-if st.sidebar.button("Load ham example"):
-    st.session_state["text"] = sample_ham
+if st.sidebar.button("Load not-spam example"):
+    st.session_state["text"] = sample_notspam
 
 # ----- Input area -----
 default_text = st.session_state.get("text", "")
@@ -60,7 +60,6 @@ with col1:
 with col2:
     st.link_button("View source on GitHub", REPO_URL)
 with col3:
-    # Download metrics if available
     if METRICS_PATH.exists():
         st.download_button("Download metrics", data=METRICS_PATH.read_text(), file_name="metrics.txt")
     else:
@@ -83,7 +82,7 @@ if do_predict:
         if pred_label == "spam":
             st.error("🚨 Prediction: **Spam**")
         else:
-            st.success("✅ Prediction: **Ham**")
+            st.success("✅ Prediction: **Not Spam**")
 
         if spam_prob is not None:
             st.caption(f"Spam probability: {spam_prob:.2%}")
