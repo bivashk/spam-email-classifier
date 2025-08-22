@@ -1,100 +1,59 @@
-import os
-import io
-import zipfile
-import requests
-import joblib
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+import joblib
+import os
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
-os.makedirs(DATA_DIR, exist_ok=True)
-os.makedirs(MODELS_DIR, exist_ok=True)
+# Load dataset
+data = pd.read_csv("data/spam.csv", encoding="latin-1")[["v1", "v2"]]
+data.columns = ["label", "message"]
 
-UCI_ZIP_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00228/smsspamcollection.zip"
-RAW_FILE = os.path.join(DATA_DIR, "SMSSpamCollection")
-MODEL_PATH = os.path.join(MODELS_DIR, "spam_model.joblib")
-METRICS_PATH = os.path.join(MODELS_DIR, "metrics.txt")
+# Replace 'ham' with 'not-spam'
+data["label"] = data["label"].replace({"ham": "not-spam", "spam": "spam"})
 
-def download_dataset():
-    if os.path.exists(RAW_FILE):
-        print("[i] Dataset already present at", RAW_FILE)
-        return RAW_FILE
-    print("[i] Downloading dataset from UCI...")
-    r = requests.get(UCI_ZIP_URL, timeout=30)
-    r.raise_for_status()
-    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-        # The file inside the zip is named 'SMSSpamCollection'
-        z.extractall(DATA_DIR)
-    if not os.path.exists(RAW_FILE):
-        raise FileNotFoundError("Expected SMSSpamCollection after extraction, but not found.")
-    print("[i] Downloaded and extracted to", RAW_FILE)
-    return RAW_FILE
+# Features and labels
+X = data["message"]
+y = data["label"]
 
-def load_data(path):
-    # The file is tab-separated with two columns: label \t text
-    df = pd.read_csv(path, sep="\t", header=None, names=["label", "text"])
-    # Keep only non-empty text rows
-    df = df.dropna(subset=["text"]).reset_index(drop=True)
-    print(f"[i] Loaded {len(df)} rows. Spam: {(df['label']=='spam').sum()}, Ham: {(df['label']=='ham').sum()}")
-    return df
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-def build_pipelines(max_features=20000):
-    tfidf = TfidfVectorizer(stop_words="english", lowercase=True, max_features=max_features)
-    pipe_nb = Pipeline([("tfidf", tfidf), ("clf", MultinomialNB())])
-    pipe_lr = Pipeline([("tfidf", tfidf), ("clf", LogisticRegression(max_iter=1000))])
-    return {"naive_bayes": pipe_nb, "log_reg": pipe_lr}
+# Vectorize text
+vectorizer = TfidfVectorizer(stop_words="english")
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
 
-def evaluate(model, X_test, y_test):
-    preds = model.predict(X_test)
-    acc = accuracy_score(y_test, preds)
-    precision, recall, f1, _ = precision_recall_fscore_support(y_test, preds, average="weighted", zero_division=0)
-    report = classification_report(y_test, preds, zero_division=0)
-    return acc, precision, recall, f1, report
+# Train model
+model = MultinomialNB()
+model.fit(X_train_tfidf, y_train)
 
-def main():
-    path = download_dataset()
-    df = load_data(path)
+# Predictions
+y_pred = model.predict(X_test_tfidf)
 
-    X = df["text"].astype(str).values
-    y = df["label"].astype(str).values
+# Evaluate metrics
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, pos_label="spam")
+recall = recall_score(y_test, y_pred, pos_label="spam")
+f1 = f1_score(y_test, y_pred, pos_label="spam")
+conf_matrix = confusion_matrix(y_test, y_pred)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+# Ensure models directory exists
+os.makedirs("models", exist_ok=True)
 
-    pipelines = build_pipelines()
-    scores = {}
+# Save model and vectorizer
+joblib.dump(model, "models/spam_classifier.pkl")
+joblib.dump(vectorizer, "models/tfidf_vectorizer.pkl")
 
-    best_name, best_model, best_f1 = None, None, -1.0
-
-    for name, pipe in pipelines.items():
-        print(f"[i] Training {name} ...")
-        pipe.fit(X_train, y_train)
-        acc, precision, recall, f1, report = evaluate(pipe, X_test, y_test)
-        scores[name] = {"accuracy": acc, "precision": precision, "recall": recall, "f1": f1, "report": report}
-        print(f"[i] {name} -> acc={acc:.4f} f1={f1:.4f}")
-        if f1 > best_f1:
-            best_name, best_model, best_f1 = name, pipe, f1
-
-    # Save best model
-    joblib.dump(best_model, MODEL_PATH)
-    print(f"[i] Saved best model ({best_name}) to {MODEL_PATH}")
-
-    # Save metrics
-    with open(METRICS_PATH, "w", encoding="utf-8") as f:
-        for name, m in scores.items():
-            f.write(f"### {name}\n")
-            f.write(f"accuracy: {m['accuracy']:.4f}\nprecision: {m['precision']:.4f}\nrecall: {m['recall']:.4f}\nf1: {m['f1']:.4f}\n\n")
-            f.write(m["report"] + "\n\n")
-        f.write(f"Best model: {best_name} (f1={best_f1:.4f})\n")
-
-    print("[i] Metrics written to", METRICS_PATH)
-
-if __name__ == "__main__":
-    main()
+# Save metrics to file
+with open("models/metrics.txt", "w") as f:
+    f.write("Model: Multinomial Naive Bayes\n")
+    f.write(f"Accuracy: {accuracy*100:.2f}%\n")
+    f.write(f"Precision: {precision*100:.2f}%\n")
+    f.write(f"Recall: {recall*100:.2f}%\n")
+    f.write(f"F1-Score: {f1*100:.2f}%\n\n")
+    f.write("Confusion Matrix:\n")
+    f.write(str(conf_matrix) + "\n\n")
+    f.write("Classification Report:\n")
+    f.write(classification_report(y_test, y_pred))
