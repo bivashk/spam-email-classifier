@@ -20,7 +20,7 @@ This project helped me learn:
 
 ## 🧱 Project Structure  
 
-```text
+
 spam-email-classifier/
 ├── app.py                 # Streamlit web app (UI)
 ├── requirements.txt       # Dependencies
@@ -31,7 +31,7 @@ spam-email-classifier/
     ├── preprocessing.py   # Text cleaning & TF-IDF vectorization
     └── train.py           # Training pipeline (fit, evaluate, save)
 
----
+--- 
 
 ## 📊 Model Training & Results  
 
