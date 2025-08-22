@@ -71,7 +71,7 @@ streamlit run app.py
 
 Deployed on Streamlit Cloud for easy access.
 
-## 👉 Live Demo (https://spam-email-classifier-bivashk.streamlit.app/)
+# Live Demo (https://spam-email-classifier-bivashk.streamlit.app/)
 
 ## 🛠️ Tech Stack
 
