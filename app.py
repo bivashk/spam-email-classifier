@@ -42,31 +42,41 @@ st.sidebar.header("📌 Try sample messages")
 
 spam_examples = [
     "Congratulations! You've won a prize. Click here to claim your reward now.",
-    "You have been selected for a free vacation. Call now to book your trip!",
-    "Urgent! Your account has been compromised. Reset your password immediately.",
-    "Get rich quick! Double your money in just 7 days. Limited offer!",
+    "Exclusive offer: Get a free vacation to Bali. Limited time only!",
+    "Urgent: Your bank account has been compromised. Verify immediately.",
+    "You’ve been selected for a $10,000 investment opportunity. Reply now."
 ]
 
 notspam_examples = [
     "Hi, can we reschedule our meeting to tomorrow at 4 PM?",
-    "Don't forget to bring your ID card for tomorrow’s exam.",
-    "Happy Birthday! Wishing you a wonderful year ahead.",
-    "Please find attached the project report for your review.",
+    "Don’t forget to bring the documents for tomorrow’s class.",
+    "Let’s catch up for lunch this weekend at our usual spot.",
+    "Your Amazon order has been shipped and will arrive tomorrow."
 ]
 
-example_choice = st.sidebar.radio(
-    "Choose a sample:",
-    ["-- None --"] 
-    + [f"Spam {i+1}" for i in range(len(spam_examples))] 
-    + [f"Not Spam {i+1}" for i in range(len(notspam_examples))]
+example_choice = st.sidebar.selectbox(
+    "Choose an example",
+    ["Spam 1", "Spam 2", "Spam 3", "Spam 4", "Not Spam 1", "Not Spam 2", "Not Spam 3", "Not Spam 4", "Random Example"]
 )
 
+import random
 if example_choice.startswith("Spam"):
     idx = int(example_choice.split()[-1]) - 1
     st.session_state["text"] = spam_examples[idx]
+    st.sidebar.markdown("👉 True label: **Spam**")
 elif example_choice.startswith("Not Spam"):
     idx = int(example_choice.split()[-1]) - 1
     st.session_state["text"] = notspam_examples[idx]
+    st.sidebar.markdown("👉 True label: **Not Spam**")
+elif example_choice == "Random Example":
+    if random.random() < 0.5:
+        text = random.choice(spam_examples)
+        st.session_state["text"] = text
+        st.sidebar.markdown("👉 True label: **Spam**")
+    else:
+        text = random.choice(notspam_examples)
+        st.session_state["text"] = text
+        st.sidebar.markdown("👉 True label: **Not Spam**")
 
 # Random example button
 if st.sidebar.button("🎲 Load random example"):
