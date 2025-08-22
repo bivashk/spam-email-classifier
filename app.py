@@ -1,96 +1,50 @@
-import os
-import pathlib
-import joblib
 import streamlit as st
+import joblib
+import os
 
-# ----- Settings -----
-REPO_URL = "https://github.com/bivashk/spam-email-classifier"  # <-- your repo URL
-MODELS_DIR = pathlib.Path(__file__).parent / "models"
-MODEL_PATH = MODELS_DIR / "spam_model.joblib"
-METRICS_PATH = MODELS_DIR / "metrics.txt"
+# Load model and vectorizer
+model = joblib.load("models/spam_classifier.pkl")
+vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
-# ----- Page config -----
-st.set_page_config(page_title="Spam Email Classifier", page_icon="📧", layout="centered")
+st.set_page_config(page_title="Spam Email Classifier", page_icon="📧", layout="wide")
 
+# Title
 st.title("📧 Spam Email Classifier")
-st.caption("TF-IDF + (Naive Bayes or Logistic Regression) · scikit-learn · Streamlit")
+st.write("This tool uses **Machine Learning (Naive Bayes + TF-IDF)** to detect whether an email is **Spam** or **Not Spam**.")
 
-# ----- Load model -----
-@st.cache_resource
-def load_model():
-    if not MODEL_PATH.exists():
-        st.error(
-            "Model not found at **models/spam_model.joblib**.\n\n"
-            "Run `python src/train.py` locally and commit the **models/** folder."
-        )
-        st.stop()
-    return joblib.load(MODEL_PATH)
+# Sidebar
+st.sidebar.header("🔍 Try Sample Emails")
+sample_spam = "Congratulations! You've won a $1000 Walmart gift card. Click here to claim now!"
+sample_not_spam = "Hi Bivash, can we reschedule our meeting to tomorrow at 4 PM?"
 
-model = load_model()
+if st.sidebar.button("Use Sample Spam"):
+    st.session_state.email_text = sample_spam
+if st.sidebar.button("Use Sample Not Spam"):
+    st.session_state.email_text = sample_not_spam
 
-with st.expander("How it works (short)"):
-    st.write(
-        "- Text is transformed into TF-IDF features.\n"
-        "- A classifier (Naive Bayes or Logistic Regression — whichever scored better in training) predicts **Spam** vs **Not Spam**.\n"
-        "- You can view training metrics below."
-    )
+# Input Box
+email_text = st.text_area("✉️ Paste your email text below:", 
+                          st.session_state.get("email_text", ""), height=200)
 
-# ----- Sidebar samples -----
-st.sidebar.header("📌 Try sample messages")
-sample_spam = "Congratulations! You've won a prize. Click here to claim your reward now."
-sample_notspam = "Hi, can we reschedule our meeting to tomorrow at 4 PM?"
+# Predict Button
+if st.button("🚀 Classify Email"):
+    if email_text.strip() != "":
+        # Vectorize input
+        input_data = vectorizer.transform([email_text])
+        prediction = model.predict(input_data)[0]
 
-if st.sidebar.button("Load spam example"):
-    st.session_state["text"] = sample_spam
-if st.sidebar.button("Load not-spam example"):
-    st.session_state["text"] = sample_notspam
-
-# ----- Input area -----
-default_text = st.session_state.get("text", "")
-user_text = st.text_area(
-    "Paste an SMS or email message:",
-    value=default_text,
-    height=180,
-    placeholder="Type or load a sample from the left sidebar…",
-)
-
-col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    do_predict = st.button("🔍 Classify")
-with col2:
-    st.link_button("View source on GitHub", REPO_URL)
-with col3:
-    if METRICS_PATH.exists():
-        st.download_button("Download metrics", data=METRICS_PATH.read_text(), file_name="metrics.txt")
-    else:
-        st.button("Metrics unavailable", disabled=True)
-
-# ----- Prediction -----
-if do_predict:
-    if not user_text.strip():
-        st.warning("Please enter some text.")
-    else:
-        pred_label = model.predict([user_text])[0]
-
-        # Probability of spam (if supported)
-        spam_prob = None
-        if hasattr(model, "predict_proba"):
-            classes = list(model.classes_)
-            proba = model.predict_proba([user_text])[0]
-            spam_prob = float(proba[classes.index("spam")]) if "spam" in classes else float(max(proba))
-
-        if pred_label == "spam":
-            st.error("🚨 Prediction: **Spam**")
+        # Show result
+        if prediction == "spam":
+            st.error("🚨 This email is classified as **SPAM**.")
         else:
-            st.success("✅ Prediction: **Not Spam**")
+            st.success("✅ This email looks **NOT SPAM**.")
+    else:
+        st.warning("⚠️ Please enter an email before classifying.")
 
-        if spam_prob is not None:
-            st.caption(f"Spam probability: {spam_prob:.2%}")
-            st.progress(min(max(spam_prob, 0.0), 1.0))
-
-st.markdown("---")
-if METRICS_PATH.exists():
-    with st.expander("Model metrics (from training)"):
-        st.code(METRICS_PATH.read_text())
-
-st.caption("👨‍💻 Built by Bivash Koirala · NIT Rourkela")
+# Display Model Metrics
+st.subheader("📊 Model Performance")
+if os.path.exists("models/metrics.txt"):
+    with open("models/metrics.txt", "r") as f:
+        st.text(f.read())
+else:
+    st.info("⚠️ Metrics not found. Please run `python src/train.py` to train the model.")
