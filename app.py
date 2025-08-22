@@ -35,15 +35,46 @@ with st.expander("How it works (short)"):
         "- You can view training metrics below."
     )
 
+import random
+
 # ----- Sidebar samples -----
 st.sidebar.header("📌 Try sample messages")
-sample_spam = "Congratulations! You've won a prize. Click here to claim your reward now."
-sample_notspam = "Hi, can we reschedule our meeting to tomorrow at 4 PM?"
 
-if st.sidebar.button("Load spam example"):
-    st.session_state["text"] = sample_spam
-if st.sidebar.button("Load not-spam example"):
-    st.session_state["text"] = sample_notspam
+spam_examples = [
+    "Congratulations! You've won a prize. Click here to claim your reward now.",
+    "You have been selected for a free vacation. Call now to book your trip!",
+    "Urgent! Your account has been compromised. Reset your password immediately.",
+    "Get rich quick! Double your money in just 7 days. Limited offer!",
+]
+
+notspam_examples = [
+    "Hi, can we reschedule our meeting to tomorrow at 4 PM?",
+    "Don't forget to bring your ID card for tomorrow’s exam.",
+    "Happy Birthday! Wishing you a wonderful year ahead.",
+    "Please find attached the project report for your review.",
+]
+
+example_choice = st.sidebar.radio(
+    "Choose a sample:",
+    ["-- None --"] 
+    + [f"Spam {i+1}" for i in range(len(spam_examples))] 
+    + [f"Not Spam {i+1}" for i in range(len(notspam_examples))]
+)
+
+if example_choice.startswith("Spam"):
+    idx = int(example_choice.split()[-1]) - 1
+    st.session_state["text"] = spam_examples[idx]
+elif example_choice.startswith("Not Spam"):
+    idx = int(example_choice.split()[-1]) - 1
+    st.session_state["text"] = notspam_examples[idx]
+
+# Random example button
+if st.sidebar.button("🎲 Load random example"):
+    if random.random() > 0.5:
+        st.session_state["text"] = random.choice(spam_examples)
+    else:
+        st.session_state["text"] = random.choice(notspam_examples)
+
 
 # ----- Input area -----
 default_text = st.session_state.get("text", "")
