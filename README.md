@@ -51,21 +51,21 @@ spam-email-classifier/
 
 ## 🖥️ How to Run Locally  
 
- 1. Clone repository
+ 1. Clone repository \
 git clone https://github.com/bivashk/spam-email-classifier.git \
-cd spam-email-classifier \
+cd spam-email-classifier 
 
- 2. Create virtual environment
-python3 -m venv .venv\
-source .venv/bin/activate   # On Windows: .venv\Scripts\activate\
+ 2. Create virtual environment \
+python3 -m venv .venv \
+source .venv/bin/activate   # On Windows: .venv\Scripts\activate
 
- 3. Install requirements
+ 3. Install requirements \
 pip install -r requirements.txt
 
- 4. Train model
+ 4. Train model \
 python src/train.py
 
- 5. Run app
+ 5. Run app \
 streamlit run app.py
 
 ## 🌐 Deployment
